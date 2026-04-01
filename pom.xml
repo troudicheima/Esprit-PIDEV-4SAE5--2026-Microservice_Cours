@@ -66,6 +66,12 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- WebSocket with STOMP -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
         <!-- Tests : starter unique et standard -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

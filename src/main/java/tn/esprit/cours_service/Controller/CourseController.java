@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tn.esprit.cours_service.Service.CourseService;
+import tn.esprit.cours_service.Service.NotificationService;
 import tn.esprit.cours_service.entities.Course;
 
 import java.util.List;
@@ -17,10 +18,17 @@ public class CourseController {
     @Autowired
     private CourseService courseService;
 
+    @Autowired
+    private NotificationService notificationService;
+
 
     @PostMapping
     public ResponseEntity<Course> createCourse(@RequestBody Course course) {
         Course created = courseService.createCourse(course);
+        
+        // Send real-time notification via WebSocket
+        notificationService.notifyCourseCreated(created);
+        
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 

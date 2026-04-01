@@ -1,5 +1,6 @@
 package tn.esprit.cours_service.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import org.w3c.dom.Text;
 
@@ -21,6 +22,7 @@ public class Course {
 
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Lesson> lessons = new ArrayList<>();
 
     public String getTitle() {
@@ -45,6 +47,22 @@ public class Course {
 
     public void setDuration(int duration) {
         Duration = duration;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public List<Lesson> getLessons() {
+        return lessons;
+    }
+
+    public void setLessons(List<Lesson> lessons) {
+        this.lessons = lessons;
     }
 
     public String  getDescription() {
