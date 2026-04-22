@@ -14,12 +14,10 @@ pipeline {
             }
         }
 
-        // PAS d'étape "Install Parent POM" - ton projet est seul
-
         stage('Tests - Cours Service') {
             steps {
-                // On est déjà à la racine du projet (Cours_Service)
-                sh 'mvn clean test'
+                // Utilisation de bat au lieu de sh pour Windows
+                bat 'mvn clean test'
                 echo "✅ Tests du cours-service passés"
             }
         }
@@ -27,7 +25,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sq1') {
-                    sh 'mvn sonar:sonar -Dsonar.projectKey=cours-service -Dsonar.projectName="Cours Service" -Dsonar.login=${SONAR_TOKEN}'
+                    bat 'mvn sonar:sonar -Dsonar.projectKey=cours-service -Dsonar.projectName="Cours Service" -Dsonar.login=%SONAR_TOKEN%'
                 }
                 echo "✅ Analyse SonarQube terminée"
             }
