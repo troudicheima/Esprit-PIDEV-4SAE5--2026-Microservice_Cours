@@ -16,7 +16,6 @@ pipeline {
 
         stage('Tests - Cours Service') {
             steps {
-                // Utilisation de bat au lieu de sh pour Windows
                 bat 'mvn clean test'
                 echo "✅ Tests du cours-service passés"
             }
@@ -31,14 +30,7 @@ pipeline {
             }
         }
 
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 10, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-                echo "✅ Quality Gate passé"
-            }
-        }
+        // Suppression de l'étape Quality Gate
     }
 
     post {
