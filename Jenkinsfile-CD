@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+    environment {
+        DOCKER_HUB_USER = 'troudicheima30979'
+        VM_IP = '192.168.168.128'
+    }
+    stages {
+        stage('Deploy to Kubernetes') {
+            steps {
+                echo "☸️ Deploying Cours Service to Kubernetes..."
+                sh """
+                    kubectl set image deployment/cours-service \
+                        cours-service=${DOCKER_HUB_USER}/cours-service:latest \
+                        -n chaima
+                    kubectl rollout status deployment/cours-service -n chaima
+                """
+                echo "✅ Cours Service Deployed"
+            }
+        }
+        stage('Verify Deployment') {
+            steps {
+                sh """
+                    kubectl get pods -n chaima -l app=cours-service
+                    kubectl get svc cours-service -n chaima
+                """
+            }
+        }
+    }
+    post {
+        success {
+            echo """
+🎉 Cours Service CD Pipeline terminé avec succès!
+☸️ Kubernetes mis à jour!
+🌐 Services disponibles:
+   Eureka:        http://${VM_IP}:32027
+   Cours-Service: http://${VM_IP}:NODE_PORT
+"""
+        }
+        failure {
+            echo "❌ Cours Service CD Pipeline échoué"
+        }
+    }
+}
