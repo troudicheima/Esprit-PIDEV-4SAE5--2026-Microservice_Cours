@@ -1,32 +1,64 @@
 pipeline {
     agent any
+
     environment {
         DOCKER_HUB_USER = 'troudicheima30979'
         VM_IP = '192.168.168.128'
         KUBECONFIG = 'C:\\Users\\troud\\.kube\\config'
+        NAMESPACE = 'chaima'
+        SERVICE_NAME = 'cours-service'
     }
+
     stages {
+
+        stage('Verify kubectl Access') {
+            steps {
+                echo "🔍 Vérification de l'accès Kubernetes..."
+                bat """
+                    set KUBECONFIG=C:\\Users\\troud\\.kube\\config
+                    kubectl cluster-info
+                    kubectl get nodes
+                """
+            }
+        }
+
         stage('Deploy to Kubernetes') {
             steps {
                 echo "☸️ Deploying Cours Service to Kubernetes..."
                 bat """
-                    kubectl set image deployment/cours-service ^
-                        cours-service=%DOCKER_HUB_USER%/cours-service:latest ^
-                        -n chaima
-                    kubectl rollout status deployment/cours-service -n chaima
+                    set KUBECONFIG=C:\\Users\\troud\\.kube\\config
+                    kubectl set image deployment/%SERVICE_NAME% ^
+                        %SERVICE_NAME%=%DOCKER_HUB_USER%/%SERVICE_NAME%:latest ^
+                        -n %NAMESPACE%
                 """
-                echo "✅ Cours Service Deployed"
+                echo "✅ Image mise à jour"
             }
         }
+
+        stage('Rollout Status') {
+            steps {
+                echo "⏳ Attente du déploiement..."
+                bat """
+                    set KUBECONFIG=C:\\Users\\troud\\.kube\\config
+                    kubectl rollout status deployment/%SERVICE_NAME% -n %NAMESPACE% --timeout=120s
+                """
+            }
+        }
+
         stage('Verify Deployment') {
             steps {
+                echo "🔎 Vérification des pods et services..."
                 bat """
-                    kubectl get pods -n chaima -l app=cours-service
-                    kubectl get svc cours-service -n chaima
+                    set KUBECONFIG=C:\\Users\\troud\\.kube\\config
+                    kubectl get pods -n %NAMESPACE% -l app=%SERVICE_NAME%
+                    kubectl get svc %SERVICE_NAME% -n %NAMESPACE%
+                    kubectl describe deployment/%SERVICE_NAME% -n %NAMESPACE%
                 """
             }
         }
+
     }
+
     post {
         success {
             echo """
@@ -35,10 +67,18 @@ pipeline {
 🌐 Services disponibles:
    Eureka:        http://${VM_IP}:32027
    Cours-Service: http://${VM_IP}:31365
-"""
+            """
         }
         failure {
             echo "❌ Cours Service CD Pipeline échoué"
+            bat """
+                set KUBECONFIG=C:\\Users\\troud\\.kube\\config
+                kubectl rollout undo deployment/%SERVICE_NAME% -n %NAMESPACE%
+            """
+            echo "⏮️ Rollback effectué vers la version précédente"
+        }
+        always {
+            echo "📋 Pipeline terminé - Statut: ${currentBuild.currentResult}"
         }
     }
 }
